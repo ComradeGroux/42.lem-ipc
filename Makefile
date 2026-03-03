@@ -8,7 +8,7 @@ NAME	= lemipc
 
 CC			= gcc
 CFLAGS		= -Wall -Wextra -Werror -O3
-DEBUG_FLAG  = -DDEBUG
+DEBUG_FLAG  = -DDEBUG -g -fsanitize=address
 
 RM			= rm -rf
 
@@ -20,7 +20,8 @@ BUILD_DIR	= build
 OBJ_DIR		= ${BUILD_DIR}/obj
 
 SRCS_LIST 	=	log.c \
-				main.c
+				main.c \
+				shared_resources.c
 
 SRCS	:= ${addprefix ${SRC_DIR}/, ${SRCS_LIST}}
 VPATH	:= $(dir $(SRCS))
@@ -36,7 +37,7 @@ LIBS = ${FT_LNK}
 
 ${NAME}: ${BUILD_DIR} ${LIBFT} ${OBJS}
 	@echo "$(RESET)[$(GREENGREEN)${NAME}$(RESET)]: ${NAME} Objects were created${GREY}"
-	${CC} ${OBJS} ${LIBS} -o ${NAME}
+	${CC} ${CFLAGS} ${OBJS} ${LIBS} -o ${NAME}
 	@echo "$(RESET)[$(GREENGREEN)${NAME}$(RESET)]: ${NAME} created !"
 
 ${LIBFT}:
