@@ -1,5 +1,5 @@
 # 42.lem-ipc
-The goal of this project is to make two (or more) processes communicate and interact. This will be a mini game where 2 teams will faces each others in a battle on a 2D board
+The goal of this project is to make two (or more) processes communicate and interact using the API that UNIX System V provide. This will be a mini game where 2 teams will faces each others in a battle on a 2D board
 
 ## Game rules
   - 2 teams (the number of player in each teams isn't limited)
