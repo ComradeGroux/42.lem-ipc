@@ -5,9 +5,12 @@ RESET = \033[0m
 
 NAME	= lemipc
 
-CC		= gcc
-CFLAGS	= -Wall -Wextra -Werror -O3
-RM		= rm -rf
+
+CC			= gcc
+CFLAGS		= -Wall -Wextra -Werror -O3
+DEBUG_FLAG  = -DDEBUG
+
+RM			= rm -rf
 
 INC_DIR		= include
 SRC_DIR		= src
@@ -16,7 +19,8 @@ LIB_DIR		= lib
 BUILD_DIR	= build
 OBJ_DIR		= ${BUILD_DIR}/obj
 
-SRCS_LIST 	=	main.c
+SRCS_LIST 	=	log.c \
+				main.c
 
 SRCS	:= ${addprefix ${SRC_DIR}/, ${SRCS_LIST}}
 VPATH	:= $(dir $(SRCS))
@@ -46,6 +50,10 @@ ${BUILD_DIR}:
 	mkdir -p ${OBJ_DIR}
 
 all: ${NAME}
+
+debug: CFLAGS += ${DEBUG_FLAG}
+debug: all
+
 
 ${OBJ_DIR}%.o:${SRC_DIR}%.c
 	@printf "\033[38;5;240m"
