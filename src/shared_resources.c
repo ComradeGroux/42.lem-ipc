@@ -63,29 +63,33 @@ static int	getNbShmAttached(int shm_id)
 int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 {
 	int	nb_attach = 0;
+	int	ret = 0;
 
-	if (shmdt(shared_rcs->shm_addr) != 0)
+	if (shmdt(shared_rcs->shm_addr) == -1)
+	{
 		log_syserr("(smhdt)");
+		ret--;
+	}
 	nb_attach = getNbShmAttached(shared_rcs->shm_id);
 	if (nb_attach == -1)
 		return -1;
-	if (nb_attach == 0)
-		return 0;
 
-	int	ret = 0;
-	switch (flag)
+	if (nb_attach == 0)
 	{
-		case CLEAN_ALL:
-			ret += cleanMsg(shared_rcs->msg_id);
-			/* fallthrough */		
-		case CLEAN_SEM:
-			ret += cleanSem(shared_rcs->sem_id);
-			/* fallthrough */
-		case CLEAN_SHM:
-			ret += cleanShm(shared_rcs->shm_id);
-			break;
-		default:
-			return -1;
+		switch (flag)
+		{
+			case CLEAN_ALL:
+				ret += cleanMsg(shared_rcs->msg_id);
+				/* fallthrough */
+			case CLEAN_SEM:
+				ret += cleanSem(shared_rcs->sem_id);
+				/* fallthrough */
+			case CLEAN_SHM:
+				ret += cleanShm(shared_rcs->shm_id);
+				break;
+			default:
+				return -1;
+		}
 	}
 	return ret;
 }

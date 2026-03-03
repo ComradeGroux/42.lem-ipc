@@ -53,8 +53,7 @@ ${BUILD_DIR}:
 all: ${NAME}
 
 debug: CFLAGS += ${DEBUG_FLAG}
-debug: all
-
+debug: re
 
 ${OBJ_DIR}%.o:${SRC_DIR}%.c
 	@printf "\033[38;5;240m"
