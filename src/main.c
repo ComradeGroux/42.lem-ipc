@@ -70,7 +70,7 @@ int	main(int argc, char **argv)
 
 	if (gIsSigReceived == true)
 		log_info("Signal received, quitting");
-	if (cleanSharedResources(&shared_rcs, CLEAN_ALL) < 0)
+	if (cleanSharedResources(&shared_rcs, CLEAN_ALL) <= IPC_RESULT_ERROR)
 		return EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }

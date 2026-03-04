@@ -15,11 +15,11 @@ key_t	generateSysVKey(int i)
 	if (readlink("/proc/self/exe", buff, sizeof(buff)) == IPC_RESULT_ERROR)
 	{
 		log_syserr("(readlink)");
-		return -1;
+		return IPC_RESULT_ERROR;
 	}
 
 	key = ftok(buff, i);
-	if (key == -1)
+	if (key == IPC_RESULT_ERROR)
 		log_syserr("(ftok)");
 	return key;
 }
