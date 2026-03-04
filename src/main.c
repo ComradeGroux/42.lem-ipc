@@ -33,9 +33,7 @@ static int	parseTeamId(int argc, char **argv)
 static int	quit(t_shared_resources *shared_rcs)
 {
 	if (gIsSemLocked == true)
-	{
-		// Unlock le semaphore
-	}
+		semUnlock(shared_rcs->sem_id);
 	cleanSharedResources(shared_rcs, CLEAN_ALL);
 	_exit(EXIT_FAILURE);
 }
@@ -68,7 +66,6 @@ int	main(int argc, char **argv)
 	{
 		// GAME LOOP
 	}
-
 
 	if (gIsSigReceived == true)
 		log_info("Signal received, quitting");

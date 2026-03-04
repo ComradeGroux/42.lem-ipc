@@ -6,17 +6,25 @@
 #include <sys/msg.h>
 
 #include <unistd.h>
+#include <stdbool.h>
+#include <time.h>
+#include <errno.h>
+
+extern volatile __sig_atomic_t	gIsSigReceived;
+extern volatile __sig_atomic_t	gIsSemLocked;
 
 key_t	generateSysVKey(int i)
 {
 	key_t	key;
 	char	buff[1024];
 
-	if (readlink("/proc/self/exe", buff, sizeof(buff)) == IPC_RESULT_ERROR)
+	ssize_t	res = readlink("/proc/self/exe", buff, sizeof(buff));
+	if (res == IPC_RESULT_ERROR || res >= 1024)
 	{
 		log_syserr("(readlink)");
 		return IPC_RESULT_ERROR;
 	}
+	buff[res] = '\0';
 
 	key = ftok(buff, i);
 	if (key == IPC_RESULT_ERROR)
@@ -81,10 +89,10 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 			case CLEAN_ALL:
 				ret += cleanMsg(shared_rcs->msg_id);
 				/* fallthrough */
-			case CLEAN_SEM:
+			case CLEAN_FROM_SEM:
 				ret += cleanSem(shared_rcs->sem_id);
 				/* fallthrough */
-			case CLEAN_SHM:
+			case CLEAN_FROM_SHM:
 				ret += cleanShm(shared_rcs->shm_id);
 				break;
 			default:
@@ -106,7 +114,7 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 	if (shared_rcs->shm_addr == (void *)IPC_RESULT_ERROR)
 	{
 		log_syserr("(shmat)");
-		cleanSharedResources(shared_rcs, CLEAN_SHM);
+		cleanSharedResources(shared_rcs, CLEAN_FROM_SHM);
 		return IPC_RESULT_ERROR;
 	}
 
@@ -114,7 +122,7 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 	if (shared_rcs->sem_id == IPC_RESULT_ERROR)
 	{
 		log_syserr("(semget)");
-		cleanSharedResources(shared_rcs, CLEAN_SEM);
+		cleanSharedResources(shared_rcs, CLEAN_FROM_SEM);
 		return IPC_RESULT_ERROR;
 	}
 
@@ -129,12 +137,120 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 	return 0;
 }
 
+static int	initSharedMemory(t_shared_resources *shared_rcs, t_map_info *map)
+{
+	struct timespec	t;
+	if (clock_gettime(CLOCK_REALTIME, &t) == -1)
+	{
+		log_syserr("(clock_gettime)");
+		return IPC_RESULT_ERROR;
+	}
+
+	map->start_time = t;
+
+	return 0;
+}
+
 int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 {
-	(void)shared_rcs;
-	(void)map;
+	struct semid_ds	info;
+	union semun {
+		int val;
+		struct semid_ds *buf;
+		unsigned short *array;
+	} arg = { .buf = &info };
 
-	*map = (t_map_info *)shared_rcs->shm_addr;
+	if (semctl(shared_rcs->sem_id, 0, IPC_STAT, arg) == IPC_RESULT_ERROR)
+	{
+		log_syserr("(semctl - IPC_STAT)");
+		return IPC_RESULT_ERROR;
+	}
 
+	map = shared_rcs->shm_addr;
+	if (info.sem_otime == 0)
+	{
+		arg.val = 1;
+		if (semctl(shared_rcs->sem_id, 0, SETVAL, arg) == IPC_RESULT_ERROR)
+		{
+			log_syserr("(semctl - SETVAL)");
+			return IPC_RESULT_ERROR;
+		}
+
+		struct sembuf compete = { .sem_num = 0, .sem_op = -1, .sem_flg = 0 };
+		if (semop(shared_rcs->sem_id, &compete, 1) == 0)
+		{
+			gIsSemLocked = true;
+			log_verb("Creator: Initializing of shared resources");
+
+			if (initSharedMemory(shared_rcs, *map) == IPC_RESULT_ERROR)
+			{
+				semUnlock(shared_rcs->sem_id);
+				return IPC_RESULT_ERROR;
+			}
+
+			if (semUnlock(shared_rcs->sem_id) == IPC_RESULT_ERROR)
+				return IPC_RESULT_ERROR;
+
+			log_verb("Creator: Shared resources initialized");
+		}
+		else if (errno == EAGAIN)
+		{
+			log_verb("Lost the race, waiting for the creator to finish...");
+
+			struct sembuf wait[2] = {
+				{ .sem_num = 0, .sem_op = -1, .sem_flg = 0 },
+				{ .sem_num = 0, .sem_op =  1, .sem_flg = 0 }
+			};
+			if (semop(shared_rcs->sem_id, &wait, 2) == IPC_RESULT_ERROR)
+			{
+				log_syserr("(semop - wait for init)");
+				return IPC_RESULT_ERROR;
+			}
+		}
+		else
+		{
+			log_syserr("(semop - compete)");
+			return IPC_RESULT_ERROR;
+		}
+	}
+	else
+	{
+		struct sembuf wait[2] = {
+			{ .sem_num = 0, .sem_op = -1, .sem_flg = 0 },
+			{ .sem_num = 0, .sem_op =  1, .sem_flg = 0 }
+		};
+		if (semop(shared_rcs->sem_id, &wait, 2) == IPC_RESULT_ERROR)
+		{
+			log_syserr("(semop - wait for init)");
+			return IPC_RESULT_ERROR;
+		}
+
+		log_verb("Not creator: Resources already initialized");
+	}
+
+	return 0;
+}
+
+int	semLock(int sem_id)
+{
+	struct sembuf post = { .sem_num = 0, .sem_op = -1, .sem_flg = 0 };
+	if (semop(sem_id, &post, 1) == IPC_RESULT_ERROR)
+	{
+		log_syserr("(semop - lock)");
+		return IPC_RESULT_ERROR;
+	}
+	gIsSemLocked = true;
+	return 0;
+}
+
+int	semUnlock(int sem_id)
+{
+	struct sembuf post = { .sem_num = 0, .sem_op = 1, .sem_flg = 0 };
+	if (semop(sem_id, &post, 1) == IPC_RESULT_ERROR)
+	{
+		log_syserr("(semop - unlock)");
+		return IPC_RESULT_ERROR;
+	}
+	gIsSemLocked = false;
 	return 0;
 }
