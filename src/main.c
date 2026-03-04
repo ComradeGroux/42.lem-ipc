@@ -1,7 +1,11 @@
 #include "lemipc.h"
-#include "libft.h"
-#include "shared_resources.h"
 #include "log.h"
+#include "libft.h"
+#include "game_utils.h"
+#include "shared_resources.h"
+
+extern bool	gIsSigReceived;
+extern bool	gIsSemLocked;
 
 static int	parseTeamId(int argc, char **argv)
 {
@@ -26,24 +30,47 @@ static int	parseTeamId(int argc, char **argv)
 
 }
 
+static int	quit(t_shared_resources *shared_rcs)
+{
+	if (gIsSemLocked == true)
+	{
+		// sem_unlock(shared_rcs->sem_id);
+	}
+	cleanSharedResources(shared_rcs, CLEAN_ALL);
+	_exit(EXIT_FAILURE);
+}
+
 int	main(int argc, char **argv)
 {
 	t_shared_resources	shared_rcs = {};
-	key_t				key = generateSysVKey(1);
 	int					team_id;
-
+	t_map_info			map;
+	t_player			player;
 
 	team_id = parseTeamId(argc, argv);
 	if (team_id == -1)
-		return 1;
+		return EXIT_FAILURE;
+	if (initSignalHandler() == -1)
+		return EXIT_FAILURE;
+	if (getSharedResources(&shared_rcs, generateSysVKey(1)) == IPC_RESULT_ERROR)
+		return EXIT_FAILURE;
+	if (initSharedResources(&shared_rcs, &map) == IPC_RESULT_ERROR)
+		quit(&shared_rcs);
 
-	if (getSharedResources(&shared_rcs, key) == -1)
-		return 1;
-
-
-	if (cleanSharedResources(&shared_rcs, CLEAN_ALL) == -1)
+	player.team = team_id;
+	if (player.team == 0)
 	{
-		
+		// GRAPHICAL LOOP
 	}
-	return 0;
+	else
+	{
+		//  GAME LOOP
+	}
+
+
+	if (gIsSigReceived == true)
+		log_info("Signal received, quitting");
+	if (cleanSharedResources(&shared_rcs, CLEAN_ALL) < 0)
+		return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }

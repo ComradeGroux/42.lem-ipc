@@ -7,7 +7,7 @@ NAME	= lemipc
 
 
 CC			= gcc
-CFLAGS		= -Wall -Wextra -Werror -O3
+CFLAGS		= -Wall -Wextra -Werror -O3 -D_POSIX_C_SOURCE=200809L
 DEBUG_FLAG  = -DDEBUG -g -fsanitize=address
 
 RM			= rm -rf
@@ -21,7 +21,8 @@ OBJ_DIR		= ${BUILD_DIR}/obj
 
 SRCS_LIST 	=	log.c \
 				main.c \
-				shared_resources.c
+				shared_resources.c \
+				signal.c
 
 SRCS	:= ${addprefix ${SRC_DIR}/, ${SRCS_LIST}}
 VPATH	:= $(dir $(SRCS))
