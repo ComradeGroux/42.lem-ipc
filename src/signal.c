@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <signal.h>
 
-bool	gIsSigReceived = false;
-bool	gIsSemLocked = false;
+volatile sig_atomic_t	gIsSigReceived = false;
+volatile sig_atomic_t	gIsSemLocked = false;
 
 static void	signalHandler(int signo, siginfo_t *sinfo, void *context)
 {

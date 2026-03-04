@@ -96,7 +96,7 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 
 int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 {
-	shared_rcs->shm_id = shmget(key, sizeof(t_shared_resources), IPC_CREAT | 0600);
+	shared_rcs->shm_id = shmget(key, sizeof(t_map_info), IPC_CREAT | 0600);
 	if (shared_rcs->shm_id == IPC_RESULT_ERROR)
 	{
 		log_syserr("(shmget)");
@@ -129,10 +129,12 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 	return 0;
 }
 
-int	initSharedResources(t_shared_resources *shared_rcs, t_map_info *map)
+int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 {
 	(void)shared_rcs;
 	(void)map;
+
+	*map = (t_map_info *)shared_rcs->shm_addr;
 
 	return 0;
 }

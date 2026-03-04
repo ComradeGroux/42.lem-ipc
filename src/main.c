@@ -4,8 +4,8 @@
 #include "game_utils.h"
 #include "shared_resources.h"
 
-extern bool	gIsSigReceived;
-extern bool	gIsSemLocked;
+extern volatile __sig_atomic_t	gIsSigReceived;
+extern volatile __sig_atomic_t	gIsSemLocked;
 
 static int	parseTeamId(int argc, char **argv)
 {
@@ -34,7 +34,7 @@ static int	quit(t_shared_resources *shared_rcs)
 {
 	if (gIsSemLocked == true)
 	{
-		// sem_unlock(shared_rcs->sem_id);
+		// Unlock le semaphore
 	}
 	cleanSharedResources(shared_rcs, CLEAN_ALL);
 	_exit(EXIT_FAILURE);
@@ -44,12 +44,14 @@ int	main(int argc, char **argv)
 {
 	t_shared_resources	shared_rcs = {};
 	int					team_id;
-	t_map_info			map;
+	t_map_info			*map;
 	t_player			player;
 
 	team_id = parseTeamId(argc, argv);
 	if (team_id == -1)
 		return EXIT_FAILURE;
+	else
+		log_verb_code("team_id is", team_id);
 	if (initSignalHandler() == -1)
 		return EXIT_FAILURE;
 	if (getSharedResources(&shared_rcs, generateSysVKey(1)) == IPC_RESULT_ERROR)
@@ -57,14 +59,14 @@ int	main(int argc, char **argv)
 	if (initSharedResources(&shared_rcs, &map) == IPC_RESULT_ERROR)
 		quit(&shared_rcs);
 
-	player.team = team_id;
+	player.team = (unsigned int)team_id;
 	if (player.team == 0)
 	{
 		// GRAPHICAL LOOP
 	}
 	else
 	{
-		//  GAME LOOP
+		// GAME LOOP
 	}
 
 
