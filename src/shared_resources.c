@@ -137,7 +137,7 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 	return 0;
 }
 
-static int	initSharedMemory(t_shared_resources *shared_rcs, t_map_info *map)
+static int	initSharedMemory(t_map_info *map)
 {
 	struct timespec	t;
 	if (clock_gettime(CLOCK_REALTIME, &t) == -1)
@@ -166,7 +166,7 @@ int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 		return IPC_RESULT_ERROR;
 	}
 
-	map = shared_rcs->shm_addr;
+	*map = shared_rcs->shm_addr;
 	if (info.sem_otime == 0)
 	{
 		arg.val = 1;
@@ -182,7 +182,7 @@ int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 			gIsSemLocked = true;
 			log_verb("Creator: Initializing of shared resources");
 
-			if (initSharedMemory(shared_rcs, *map) == IPC_RESULT_ERROR)
+			if (initSharedMemory(*map) == IPC_RESULT_ERROR)
 			{
 				semUnlock(shared_rcs->sem_id);
 				return IPC_RESULT_ERROR;
@@ -201,7 +201,7 @@ int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 				{ .sem_num = 0, .sem_op = -1, .sem_flg = 0 },
 				{ .sem_num = 0, .sem_op =  1, .sem_flg = 0 }
 			};
-			if (semop(shared_rcs->sem_id, &wait, 2) == IPC_RESULT_ERROR)
+			if (semop(shared_rcs->sem_id, wait, 2) == IPC_RESULT_ERROR)
 			{
 				log_syserr("(semop - wait for init)");
 				return IPC_RESULT_ERROR;
@@ -219,7 +219,7 @@ int	initSharedResources(t_shared_resources *shared_rcs, t_map_info **map)
 			{ .sem_num = 0, .sem_op = -1, .sem_flg = 0 },
 			{ .sem_num = 0, .sem_op =  1, .sem_flg = 0 }
 		};
-		if (semop(shared_rcs->sem_id, &wait, 2) == IPC_RESULT_ERROR)
+		if (semop(shared_rcs->sem_id, wait, 2) == IPC_RESULT_ERROR)
 		{
 			log_syserr("(semop - wait for init)");
 			return IPC_RESULT_ERROR;

@@ -52,3 +52,8 @@ void	log_info(const char *msg)
 {
 	fprintf(stdout, BBLU "[  INFO   ]" CRESET " %s\n", msg);
 }
+
+void	log_info_code(const char *msg, int n)
+{
+	fprintf(stdout, BBLU "[  INFO   ]" CRESET " %s %d\n", msg, n);
+}

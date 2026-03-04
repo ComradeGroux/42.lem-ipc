@@ -1,10 +1,10 @@
-#include "lemipc.h"
 #include "shared_resources.h"
 #include "log.h"
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <stdbool.h>
 
 volatile sig_atomic_t	gIsSigReceived = false;
 volatile sig_atomic_t	gIsSemLocked = false;

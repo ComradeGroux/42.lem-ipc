@@ -1,8 +1,10 @@
-#include "lemipc.h"
-#include "log.h"
+#include "game_mode.h"
 #include "libft.h"
-#include "game_utils.h"
+#include "log.h"
+#include "signal_handling.h"
 #include "shared_resources.h"
+
+#include <stdbool.h>
 
 extern volatile __sig_atomic_t	gIsSigReceived;
 extern volatile __sig_atomic_t	gIsSemLocked;
