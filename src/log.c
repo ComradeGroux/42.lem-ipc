@@ -9,10 +9,21 @@
   {
 	  fprintf(stdout, BMAG "[ VERBOSE ]" CRESET " %s\n", msg);
   }
+
+  void	log_verb_code(const char *msg, const int n)
+  {
+	  fprintf(stdout, BMAG "[ VERBOSE ]" CRESET " %s %i\n", msg, n);
+  }
 #else
   void	log_verb(const char *msg)
   {
 	  (void)msg;
+  }
+
+  void	log_verb_code(const char *msg, const int n)
+  {
+	  (void)msg;
+	  (void)n;
   }
 #endif
 
@@ -21,7 +32,7 @@ void	log_err(const char *msg)
 	fprintf(stderr, BRED "[  ERROR  ]" CRESET " %s\n", msg);
 }
 
-void	log_err_code(const char *msg, int n)
+void	log_err_code(const char *msg, const int n)
 {
 	fprintf(stderr, BRED "[  ERROR  ]" CRESET " %s %i\n", msg, n);
 }
