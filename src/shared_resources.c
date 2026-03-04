@@ -103,7 +103,7 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 		return IPC_RESULT_ERROR;
 	}
 	shared_rcs->shm_addr = shmat(shared_rcs->shm_id, NULL, 0);
-	if (shared_rcs->shm_addr == NULL)
+	if (shared_rcs->shm_addr == (void *)IPC_RESULT_ERROR)
 	{
 		log_syserr("(shmat)");
 		cleanSharedResources(shared_rcs, CLEAN_SHM);
