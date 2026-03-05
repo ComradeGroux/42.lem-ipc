@@ -7,7 +7,7 @@ NAME	= lemipc
 
 
 CC			= gcc
-CFLAGS		= -Wall -Wextra -Werror -O3 -D_POSIX_C_SOURCE=200809L
+CFLAGS		= -Wall -Wextra -Werror -O3 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE
 DEBUG_FLAG  = -DDEBUG -g -fsanitize=address
 
 RM			= rm -rf
@@ -19,7 +19,9 @@ LIB_DIR		= lib
 BUILD_DIR	= build
 OBJ_DIR		= ${BUILD_DIR}/obj
 
-SRCS_LIST 	=	log.c \
+SRCS_LIST 	=	game_graphic.c \
+				game_player.c \
+				log.c \
 				main.c \
 				shared_resources.c \
 				signal.c

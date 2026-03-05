@@ -27,6 +27,15 @@
 #define BCYN "\e[1;36m"
 #define BWHT "\e[1;37m"
 
+#define BBLKBRIGHT "\e[1;90m"
+#define BREDBRIGHT "\e[1;91m"
+#define BGRNBRIGHT "\e[1;92m"
+#define BYELBRIGHT "\e[1;93m"
+#define BBLUBRIGHT "\e[1;94m"
+#define BMAGBRIGHT "\e[1;95m"
+#define BCYNBRIGHT "\e[1;96m"
+#define BWHTBRIGHT "\e[1;97m"
+
 //Regular underline text
 #define UBLK "\e[4;30m"
 #define URED "\e[4;31m"
@@ -81,3 +90,4 @@
 #define reset "\e[0m"
 #define CRESET "\e[0m"
 #define COLOR_RESET "\e[0m"
+#define TERMINAL_RESET "\033[H\033[J"
