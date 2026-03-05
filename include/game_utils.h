@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #define TIME_BETWEEN_ACTION 1
-#define TIME_BEFORE_STARTING_GAME 10
+#define TIME_BEFORE_STARTING_GAME 20
 
 // NB_MAX_TEAMS should be the number maximum of teams + 1
 #define NB_MAX_TEAMS 10
@@ -22,7 +22,6 @@ typedef enum e_game_state {
 
 typedef struct	s_map_info {
 	struct timespec	start_time;
-	struct timespec	time_last_move;
 	unsigned int	nb_player;
 	unsigned int	nb_player_team[NB_MAX_TEAMS];
 	unsigned int	map[BOARD_X_MAX][BOARD_Y_MAX];
@@ -36,6 +35,7 @@ typedef	struct	s_position {
 } t_position;
 
 typedef struct	s_player {
+	int				msg_id;
 	unsigned int	team;
 	t_position		position;
 } t_player;

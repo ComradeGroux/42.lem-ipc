@@ -48,7 +48,7 @@ static int	cleanSem(int sem_id)
 	return ret;
 }
 
-static int	cleanMsg(int msg_id)
+int	cleanMsg(int msg_id)
 {
 	int	ret = msgctl(msg_id, IPC_RMID, NULL);
 	if (ret != IPC_RESULT_ERROR)
@@ -87,7 +87,7 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 		switch (flag)
 		{
 			case CLEAN_ALL:
-				ret += cleanMsg(shared_rcs->msg_id);
+				// ret += cleanMsg(player->msg_id);
 				/* fallthrough */
 			case CLEAN_FROM_SEM:
 				ret += cleanSem(shared_rcs->sem_id);
@@ -102,7 +102,7 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 	return ret;
 }
 
-int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
+int	getSharedResources(t_shared_resources *shared_rcs, t_player *player, key_t key)
 {
 	shared_rcs->shm_id = shmget(key, sizeof(t_map_info), IPC_CREAT | 0600);
 	if (shared_rcs->shm_id == IPC_RESULT_ERROR)
@@ -126,10 +126,13 @@ int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 		return IPC_RESULT_ERROR;
 	}
 
-	shared_rcs->msg_id = msgget(key, IPC_CREAT | 0600);
-	if (shared_rcs->msg_id == IPC_RESULT_ERROR)
+	if (player->team == 0)
+		return 0;
+	player->msg_id = msgget(generateSysVKey(player->team), IPC_CREAT | 0600);
+	if (player->msg_id == IPC_RESULT_ERROR)
 	{
 		log_syserr("(msgget)");
+		cleanMsg(player->msg_id);
 		cleanSharedResources(shared_rcs, CLEAN_ALL);
 		return IPC_RESULT_ERROR;
 	}

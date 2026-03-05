@@ -16,6 +16,9 @@ static void	unspawn(t_map_info *map, t_player *player)
 	map->nb_player_team[player->team] -= 1;
 	map->nb_player -= 1;
 	map->game_state = STATE_PRINT;
+
+	if (map->nb_player_team[player->team] == 0)
+		cleanMsg(player->msg_id);
 }
 
 static int	killPlayer(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
@@ -191,7 +194,10 @@ static int	play(t_shared_resources *shared_rcs, t_map_info *map, t_player *playe
 	}
 
 	if (state == STATE_WON)
+	{
 		log_info("Congratulations, you won the game !");
+		killPlayer(shared_rcs, map, player);
+	}
 
 	return 1;
 }
