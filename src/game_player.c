@@ -138,10 +138,8 @@ static t_position	randomMove(t_map_info *map, t_player *player)
 	possible_move[2] = checkIfPositionIsEmpty(map, player->position.x, player->position.y + 1); // SOUTH
 	possible_move[3] = checkIfPositionIsEmpty(map, player->position.x - 1, player->position.y); // WEST
 
-	short		c = countPossibleMove(possible_move);
-	long		r = random() % c;
-
-	c = 0;
+	unsigned char	r = random() % countPossibleMove(possible_move);
+	unsigned char	c = 0;
 	for (unsigned int i = 0; i < 4; i++)
 	{
 		if (possible_move[i])
@@ -196,22 +194,79 @@ static int	play(t_shared_resources *shared_rcs, t_map_info *map, t_player *playe
 	return 1;
 }
 
-static int	joinGame(t_shared_resources *shared_rcs, t_map_info *map)
+static bool	isSpawnable(t_map_info *map, t_position pos)
 {
-	(void)shared_rcs;
-	(void)map;
-	return 0;
+	if (pos.x < 0 || pos.y < 0)
+		return false;
+	if (map->map[pos.x][pos.y] == 0)
+		return true;
+	return false;
+}
+
+static int	setPlayer(t_map_info *map, t_player *player, t_position pos)
+{
+	player->position = pos;
+	map->map[pos.x][pos.y] = player->team;
+	map->nb_player_team[player->team] += 1;
+	map->nb_player += 1;
+
+	return 1;
+}
+
+static int	foundSpawnPos(t_map_info *map, t_player *player)
+{
+	t_position	spawn_pos = { .x = -1, .y = -1};
+	int			nb_try = (BOARD_X_MAX * BOARD_Y_MAX) / 2;
+
+	while (isSpawnable(map, spawn_pos) != true && nb_try > 0)
+	{
+		spawn_pos.x = random() % BOARD_X_MAX;
+		spawn_pos.y = random() % BOARD_Y_MAX;
+		nb_try--;
+	}
+
+	if (isSpawnable(map, spawn_pos) == true)
+		return setPlayer(map, player, spawn_pos);
+	else
+	{
+		for (unsigned int x = 0; x < BOARD_X_MAX; x++)
+		{
+			for (unsigned int y = 0; y < BOARD_Y_MAX; y++)
+			{
+				spawn_pos = (t_position){ .x = x, .y = y };
+				if (isSpawnable(map, spawn_pos) == true)
+					return setPlayer(map, player, spawn_pos);
+			}
+		}
+	}
+	return -1;
 }
 
 static int	spawnPlayer(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
 {
-	(void)shared_rcs;
-	(void)map;
-	(void)player;
+	if (semLock(shared_rcs->sem_id) == IPC_RESULT_ERROR)
+		return -1;
+
+	if (foundSpawnPos(map, player) == -1)
+	{
+		log_err("There is no suitable spawn position");
+		semUnlock(shared_rcs->sem_id);
+		return -1;
+	}
+
+	if (semUnlock(shared_rcs->sem_id) == IPC_RESULT_ERROR)
+		return -1;
 	return 0;
 }
 
 static int	waitGameStart(t_shared_resources *shared_rcs, t_map_info *map)
+{
+	(void)shared_rcs;
+	(void)map;
+	return 0;
+}
+
+static int	joinGame(t_shared_resources *shared_rcs, t_map_info *map)
 {
 	(void)shared_rcs;
 	(void)map;
