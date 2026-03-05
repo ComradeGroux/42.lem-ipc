@@ -1,6 +1,7 @@
 #include "game_utils.h"
 #include "shared_resources.h"
 #include "log.h"
+#include "game_private.h"
 
 #include <stdbool.h>
 #include <unistd.h>
@@ -259,25 +260,11 @@ static int	spawnPlayer(t_shared_resources *shared_rcs, t_map_info *map, t_player
 	return 0;
 }
 
-static int	waitGameStart(t_shared_resources *shared_rcs, t_map_info *map)
-{
-	(void)shared_rcs;
-	(void)map;
-	return 0;
-}
-
-static int	joinGame(t_shared_resources *shared_rcs, t_map_info *map)
-{
-	(void)shared_rcs;
-	(void)map;
-	return 0;
-}
-
 int	playerMode(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
 {
 	log_info("Player mode started");
 
-	if (joinGame(shared_rcs, map) == -1)
+	if (joinGame(shared_rcs, map, false) == -1)
 		return -1;
 	if (spawnPlayer(shared_rcs, map, player) == -1)
 		return -1;

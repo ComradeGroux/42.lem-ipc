@@ -3,6 +3,7 @@
 #include "ANSI-color-codes.h"
 #include "libft.h"
 #include "log.h"
+#include "game_private.h"
 
 extern volatile __sig_atomic_t	gIsSigReceived;
 extern volatile __sig_atomic_t	gIsSemLocked;
@@ -139,9 +140,10 @@ static int	printWinner(t_shared_resources *shared_rcs, t_map_info *map)
 
 int	graphicMode(t_shared_resources *shared_rcs, t_map_info *map)
 {
-	// CREATE / JOIN GAME
-
-	// WAIT UNTILL THE GAME START
+	if (joinGame(shared_rcs, map, true) == -1)
+		return -1;
+	if (waitGameStart(shared_rcs, map) == -1)
+		return -1;
 
 	unsigned int	teams_still_in_game = 9;
 	while (teams_still_in_game >= 2)

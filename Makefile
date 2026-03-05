@@ -21,6 +21,7 @@ OBJ_DIR		= ${BUILD_DIR}/obj
 
 SRCS_LIST 	=	game_graphic.c \
 				game_player.c \
+				game.c \
 				log.c \
 				main.c \
 				shared_resources.c \
