@@ -13,7 +13,8 @@ extern volatile __sig_atomic_t	gIsSemLocked;
 static void	unspawn(t_map_info *map, t_player *player)
 {
 	map->map[player->position.x][player->position.y] = 0;
-	map->nb_player_team[player->team - 1] -= 1;
+	map->nb_player_team[player->team] -= 1;
+	map->nb_player -= 1;
 	map->game_state = STATE_PRINT;
 }
 

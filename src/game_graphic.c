@@ -89,7 +89,7 @@ static void	printBoard(t_map_info *map)
 		for (unsigned int x = 0; x < BOARD_X_MAX; x++)
 		{
 			if (chooseColor(map->map[x][y]) != -1)
-				ft_printf(" %d " CRESET "|", map->map[x][y] + 1);
+				ft_printf(" %d " CRESET "|", map->map[x][y]);
 		}
 
 		ft_printf("\n -");
@@ -145,13 +145,10 @@ int	graphicMode(t_shared_resources *shared_rcs, t_map_info *map)
 		teams_still_in_game = getNbTeamsInGame(map);
 		if (map->game_state == STATE_PRINT)
 		{
-			if (teams_still_in_game >= 2)
-			{
-				printBoard(map);
-				printTeamColor();
-				printNbTeamPlayer(map);
-			}
-			else
+			printBoard(map);
+			printTeamColor();
+			printNbTeamPlayer(map);
+			if (teams_still_in_game < 2)
 				map->game_state = STATE_WON;
 		}
 
