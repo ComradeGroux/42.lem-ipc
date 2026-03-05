@@ -147,6 +147,7 @@ static int	initSharedMemory(t_map_info *map)
 	}
 
 	map->start_time = t;
+	map->graphic_on = false;
 
 	return 0;
 }

@@ -7,3 +7,4 @@
 
 int	joinGame(t_shared_resources *shared_rcs, t_map_info *map, bool graphic_mode);
 int	waitGameStart(t_shared_resources *shared_rcs, t_map_info *map);
+int	getNbTeamsInGame(t_map_info *map);

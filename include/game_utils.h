@@ -1,8 +1,10 @@
 #pragma once
 
 #include <time.h>
+#include <stdbool.h>
 
 #define TIME_BETWEEN_ACTION 1
+#define TIME_BEFORE_STARTING_GAME 10
 
 // NB_MAX_TEAMS should be the number maximum of teams + 1
 #define NB_MAX_TEAMS 10
@@ -25,6 +27,7 @@ typedef struct	s_map_info {
 	unsigned int	nb_player_team[NB_MAX_TEAMS];
 	unsigned int	map[BOARD_X_MAX][BOARD_Y_MAX];
 	t_game_state	game_state;
+	bool			graphic_on;
 } t_map_info;
 
 typedef	struct	s_position {

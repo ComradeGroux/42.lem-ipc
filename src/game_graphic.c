@@ -98,17 +98,6 @@ static void	printBoard(t_map_info *map)
 	}
 }
 
-static int	getNbTeamsInGame(t_map_info *map)
-{
-	int	total = 0;
-	for (unsigned int i = 1; i < NB_MAX_TEAMS; i++)
-	{
-		if (map->nb_player_team[i] > 0)
-			total += 1;
-	}
-	return total;
-}
-
 static int	printWinner(t_shared_resources *shared_rcs, t_map_info *map)
 {
 	int	team_id = 0;
@@ -168,6 +157,8 @@ int	graphicMode(t_shared_resources *shared_rcs, t_map_info *map)
 
 		if (semUnlock(shared_rcs->sem_id) == IPC_RESULT_ERROR)
 			return -1;
+
+		sleep(TIME_BETWEEN_ACTION);
 	}
 
 	if (printWinner(shared_rcs, map) == -1)
