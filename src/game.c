@@ -92,6 +92,12 @@ int	waitGameStart(t_shared_resources *shared_rcs, t_map_info *map)
 
 	if (semLock(shared_rcs->sem_id) == IPC_RESULT_ERROR)
 		return -1;
+	if (map->graphic_on == false)
+	{
+		log_err("There isn't any graphical process launched");
+		semUnlock(shared_rcs->sem_id);
+		return -1;
+	}
 	if (getNbTeamsInGame(map) < 2)
 	{
 		log_err("There isn't enough team to start the game");
