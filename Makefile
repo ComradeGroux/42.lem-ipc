@@ -7,7 +7,7 @@ NAME	= lemipc
 
 
 CC			= gcc
-CFLAGS		= -Wall -Wextra -Werror -O3 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE
+CFLAGS		= -Wall -Wextra -Werror -O3 -D_DEFAULT_SOURCE
 DEBUG_FLAG  = -DDEBUG -g -fsanitize=address
 
 RM			= rm -rf
@@ -37,7 +37,7 @@ LIBFT_INC = -I ${DIR_LIBFT}
 LIBFT =	${DIR_LIBFT}libft.a
 FT_LNK = -L ${DIR_LIBFT} -lft
 
-LIBS = ${FT_LNK}
+LIBS = ${FT_LNK} -lm
 
 ${NAME}: ${BUILD_DIR} ${LIBFT} ${OBJS}
 	@echo "$(RESET)[$(GREENGREEN)${NAME}$(RESET)]: ${NAME} Objects were created${GREY}"

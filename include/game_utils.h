@@ -13,11 +13,11 @@
 #define BOARD_Y_MAX 15
 
 typedef enum e_game_state {
-	STATE_ERROR,
 	STATE_PLAY,
 	STATE_PRINT,
 	STATE_DEAD,
-	STATE_WON
+	STATE_WON,
+	STATE_ERROR
 } t_game_state;
 
 typedef struct	s_map_info {
