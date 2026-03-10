@@ -87,7 +87,7 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 		switch (flag)
 		{
 			case CLEAN_ALL:
-				// ret += cleanMsg(player->msg_id);
+				ret += cleanMsg(shared_rcs->msg_id);
 				/* fallthrough */
 			case CLEAN_FROM_SEM:
 				ret += cleanSem(shared_rcs->sem_id);
@@ -102,7 +102,7 @@ int	cleanSharedResources(t_shared_resources *shared_rcs, t_clean_shared flag)
 	return ret;
 }
 
-int	getSharedResources(t_shared_resources *shared_rcs, t_player *player, key_t key)
+int	getSharedResources(t_shared_resources *shared_rcs, key_t key)
 {
 	shared_rcs->shm_id = shmget(key, sizeof(t_map_info), IPC_CREAT | 0600);
 	if (shared_rcs->shm_id == IPC_RESULT_ERROR)
@@ -126,13 +126,10 @@ int	getSharedResources(t_shared_resources *shared_rcs, t_player *player, key_t k
 		return IPC_RESULT_ERROR;
 	}
 
-	if (player->team == 0)
-		return 0;
-	player->msg_id = msgget(generateSysVKey(player->team), IPC_CREAT | 0600);
-	if (player->msg_id == IPC_RESULT_ERROR)
+	shared_rcs->msg_id = msgget(key, IPC_CREAT | 0600);
+	if (shared_rcs->msg_id == IPC_RESULT_ERROR)
 	{
 		log_syserr("(msgget)");
-		cleanMsg(player->msg_id);
 		cleanSharedResources(shared_rcs, CLEAN_ALL);
 		return IPC_RESULT_ERROR;
 	}
@@ -151,7 +148,7 @@ static int	initSharedMemory(t_map_info *map)
 
 	map->start_time = t;
 	map->graphic_on = false;
-	map->game_state = STATE_PLAY;
+	map->game_state = STATE_PRINT;
 
 	return 0;
 }
@@ -258,4 +255,39 @@ int	semUnlock(int sem_id)
 	}
 	gIsSemLocked = false;
 	return 0;
+}
+
+int	sendTarget(t_shared_resources *shared_rcs, t_player *player, t_position target)
+{
+	if (target.x == -1)
+		return -1;
+
+	t_message	suggestion = { .team = player->team, .target = target };
+	if (msgsnd(shared_rcs->msg_id, &suggestion, sizeof(t_position), IPC_NOWAIT) == -1)
+	{
+		if (errno == EAGAIN)
+		{
+			log_war("Not enough space available in the MSGQ");
+			return 0;
+		}
+		return -1;
+	}
+	return 1;
+}
+
+t_position	receiveTarget(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
+{
+	t_message	msg;
+	t_position	target = { .x = -1, .y = -1 };
+
+	if (msgrcv(shared_rcs->msg_id, &msg, sizeof(msg), player->team, IPC_NOWAIT) > 0)
+	{
+		int	x = msg.target.x;
+		int	y = msg.target.y;
+
+		if (map->map[x][y] != 0 && map->map[x][y] != player->team)
+			target = msg.target;
+	}
+
+	return target;
 }

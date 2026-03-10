@@ -17,9 +17,6 @@ static void	unspawn(t_map_info *map, t_player *player)
 	map->nb_player_team[player->team] -= 1;
 	map->nb_player -= 1;
 	map->game_state = STATE_PRINT;
-
-	if (map->nb_player_team[player->team] == 0)
-		cleanMsg(player->msg_id);
 }
 
 static int	killPlayer(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
@@ -247,31 +244,43 @@ static t_position	findClosestEnemy(t_map_info *map, t_player *player)
 	return closest_enemy;
 }
 
-static t_game_state	move(t_map_info *map, t_player *player)
+static t_game_state	move(t_shared_resources *shared_rcs, t_map_info *map, t_player *player)
 {
-
-	t_position closest_ennemy = findClosestEnemy(map, player);
-	if (closest_ennemy.x != -1)
+	bool		movementOk = false;
+	t_position	target = receiveTarget(shared_rcs, map, player);
+	if (target.x == -1)
 	{
-		if (moveTowardPosition(map, player, closest_ennemy) != -1)
-			return map->game_state;
-		log_verb("Blocked toward target, falling back to random move");
+		log_verb("Didnt' received a target or it was expired, will target the closest enemy");
+		target = findClosestEnemy(map, player);
+	}
+
+	if (target.x != -1)
+	{
+		if (moveTowardPosition(map, player, target) == -1)
+			log_verb("Blocked toward target, falling back to random move");
+		else
+			movementOk = true;
 	}
 	else
 		log_verb("No enemy found, move randomly");
 
-	closest_ennemy = randomMove(map, player);
-	if (closest_ennemy.x == -1)
+	if (movementOk == false)
 	{
-		log_war("Player is blocked, skipping turn");
-		return map->game_state;
+		target = randomMove(map, player);
+		if (target.x == -1)
+		{
+			log_war("Player is blocked, skipping turn");
+			movementOk = true;
+		}
+
+		if (movementOk == false && moveTowardPosition(map, player, target) == -1)
+		{
+			log_err("Failed to move the player");
+			return STATE_ERROR;
+		}
 	}
 
-	if (movePlayer(map, closest_ennemy.x, closest_ennemy.y, player) == -1)
-	{
-		log_err("Failed to move the player");
-		return STATE_ERROR;
-	}
+	sendTarget(shared_rcs, player, findClosestEnemy(map, player));
 
 	return map->game_state;
 }
@@ -292,7 +301,7 @@ static int	play(t_shared_resources *shared_rcs, t_map_info *map, t_player *playe
 			return 1;
 		}
 		else
-			state = move(map, player);
+			state = move(shared_rcs, map, player);
 
 		if (state == STATE_ERROR)
 		{

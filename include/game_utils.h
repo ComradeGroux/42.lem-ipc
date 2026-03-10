@@ -35,7 +35,6 @@ typedef	struct	s_position {
 } t_position;
 
 typedef struct	s_player {
-	int				msg_id;
 	unsigned int	team;
 	t_position		position;
 } t_player;
